@@ -1,0 +1,359 @@
+
+
+//========================================================================================
+
+				//--------  Todo App ----------//
+					Tech : 	Nuxt.js + Vuex + Vuetify
+					From : 	softArray
+
+//========================================================================================
+
+	
+	
+//---------------------------------------------------------------------------------------------
+		//--git_link: https://github.com/Shahed-Chy-Suzan/Todo-App-by-Nuxt.js-Vuetify
+//---------------------------------------------------------------------------------------------
+
+
+//---------------------------------------------------------------------------------------------
+		|--OUTPUT:----
+		-for running project: command:--- npm run dev
+		-then run project in: http://localhost:3000/
+//---------------------------------------------------------------------------------------------
+
+
+
+//-----------------------------------//--Problem--//------------------------------------------------
+		ERROR  Failed to compile with 1 errors                                                                                                   
+		error  in ./layouts/default.vue
+		--solve----
+		Module Error (from ./node_modules/eslint-loader/index.js):
+		npx prettier --write "**/*.{vue,js}"
+//---------------------------------------------------------------------------------------------
+
+
+
+
+
+//------------------------------------------------------------------------------------------
+							//------Start Todo App-----//
+//------------------------------------------------------------------------------------------
+
+
+//------------------------------------pages/index.vue--------------------------------------------
+	<template>
+	  <v-data-table
+		:headers="headers"
+		:items="todos"
+		sort-by="id"
+		class="elevation-1"
+		:key="key"
+	  >                                      <!--1-:items="todos"/3-->  <!--8-:key for reload-->
+		<template v-slot:top>
+		  <v-toolbar flat>
+			<v-toolbar-title>Nuxt-ToDo App</v-toolbar-title>
+			<v-divider class="mx-4" inset vertical></v-divider>
+			<v-spacer></v-spacer>
+			<v-dialog v-model="dialog" max-width="500px" persistent>
+			  <template v-slot:activator="{ on, attrs }">
+				<v-btn color="primary" dark class="mb-2" v-bind="attrs" v-on="on">
+				  New Item
+				</v-btn>
+			  </template>
+			  <v-card>
+				<v-card-title>
+				  <span class="headline">{{ formTitle }}</span>
+				</v-card-title>
+
+				<v-card-text>
+				  <v-container>
+					<v-row>
+					  <!--1--script-->
+					  <v-col cols="12" sm="6" md="4">
+						<v-text-field
+						  v-model="editedItem.name"
+						  label="Task Name"
+						></v-text-field>                          <!--2-v-model+label>>3-->
+					  </v-col>
+					  <v-col cols="12" sm="6" md="4">
+						<v-text-field
+						  v-model="editedItem.id"
+						  label="Id"
+						></v-text-field>
+					  </v-col>
+					  <v-col cols="12" sm="6" md="4">
+						<v-text-field
+						  v-model="editedItem.day"
+						  label="Day"
+						></v-text-field>
+					  </v-col>
+					  <v-col cols="12" sm="6" md="4">
+						<v-text-field
+						  v-model="editedItem.time"
+						  label="Time"
+						></v-text-field>
+					  </v-col>
+					</v-row>
+				  </v-container>
+				</v-card-text>
+
+				<v-card-actions>
+				  <v-spacer></v-spacer>
+				  <v-btn color="blue darken-1" text @click="close"> Cancel </v-btn>
+				  <v-btn color="blue darken-1" text @click="save"> Save </v-btn>
+				</v-card-actions>
+			  </v-card>
+			</v-dialog>
+			<v-dialog v-model="dialogDelete" max-width="500px">
+			  <v-card>
+				<v-card-title class="headline"
+				  >Are you sure you want to delete this item?</v-card-title
+				>
+				<v-card-actions>
+				  <v-spacer></v-spacer>
+				  <v-btn color="blue darken-1" text @click="closeDelete"
+					>Cancel</v-btn
+				  >
+				  <v-btn color="blue darken-1" text @click="deleteItemConfirm"
+					>OK</v-btn
+				  >
+				  <v-spacer></v-spacer>
+				</v-card-actions>
+			  </v-card>
+			</v-dialog>
+		  </v-toolbar>
+		</template>
+		<template v-slot:item.actions="{ item }">
+		  <v-icon small class="mr-2" @click="editItem(item)"> mdi-pencil </v-icon>      <!--7-->
+		  <v-icon small @click="deleteItem(item)"> mdi-delete </v-icon>                <!--8-->
+		</template>
+		<template v-slot:no-data>
+		  <v-btn color="primary" @click="initialize"> Reset </v-btn>
+		</template>
+	  </v-data-table>
+	</template>
+
+	<script>
+	import { mapGetters } from 'vuex'               // --6--
+
+	export default {
+	  data: () => ({
+		dialog: false,
+		dialogDelete: false,
+		headers: [                                   // --4--
+		  {
+			text: 'Task Name',
+			align: 'start',
+			sortable: false,
+			value: 'name',
+		  },
+		  { text: 'Id', value: 'id' },
+		  { text: 'Day', value: 'day' },
+		  { text: 'Time', value: 'time' },
+		  { text: 'Actions', value: 'actions', sortable: false },
+		],
+		desserts: [],
+		editedIndex: -1,
+		editedItem: {                               // --3--
+		  name: '',
+		  id: null,
+		  day: null,
+		  time: null,
+		},
+		defaultItem: {
+		  name: '',
+		  id: null,
+		  day: null,
+		  time: null,
+		},
+		key: 0                              // --8.1--
+	  }),
+
+	  computed: {
+		formTitle() {
+		  return this.editedIndex === -1 ? 'New Item' : 'Edit Item'
+		},
+		...mapGetters({                               // --6.1>>getters--
+		  todos: 'todo/getTodos',
+		}),
+	  },
+
+	  watch: {
+		dialog(val) {
+		  val || this.close()
+		},
+		dialogDelete(val) {
+		  val || this.closeDelete()
+		},
+	  },
+
+	  created() {
+		this.initialize()
+	  },
+
+	  methods: {
+		initialize() {},
+
+		editItem(item) {                                        // --7.1--
+		  this.editedIndex = this.todos.indexOf(item)
+		  this.editedItem = Object.assign({}, item)
+		  this.dialog = true
+		},
+
+		deleteItem(item) {                                      // --8.1--
+		  this.editedIndex = this.todos.indexOf(item)
+		  this.editedItem = Object.assign({}, item)
+		  this.dialogDelete = true
+		},
+
+		deleteItemConfirm() {                                         // --8.2 >>actions
+		  // this.todos.splice(this.editedIndex, 1)
+		  this.$store.dispatch('todo/deleteTodo', this.editedIndex)
+		  this.closeDelete()
+		},
+
+		close() {
+		  this.dialog = false
+		  this.$nextTick(() => {
+			this.editedItem = Object.assign({}, this.defaultItem)
+			this.editedIndex = -1
+		  })
+		},
+
+		closeDelete() {
+		  this.dialogDelete = false
+		  this.$nextTick(() => {
+			this.editedItem = Object.assign({}, this.defaultItem)
+			this.editedIndex = -1
+		  })
+		},
+
+		save() {
+		  if (this.editedIndex > -1) {                         // --7.2>>mutations(actions)
+			const todo = {
+			  index: this.editedIndex,
+			  data: this.editedItem
+			}
+			this.$store.commit('todo/setTodosUpdate', todo)
+			this.key++                                                  // --8.2--
+		  } else {
+			// this.desserts.push(this.editedItem)                        // --insert data--
+			this.$store.dispatch('todo/saveTodo', this.editedItem)        // --5>>actions--
+		  }
+		  this.close()
+		},
+	  },
+	}
+	</script>
+	
+	
+	
+//---------------------------------store/todo/actions.js------------------------------------------------		export default {
+		  saveTodo(context, payload) {                  // --5.1 >>mutations
+			context.commit('setTodos', payload)
+		  },
+		  deleteTodo(context, id) {                     // --8.3 >>mutations
+			context.commit('setTodosDelete', id)
+		  },
+		}
+
+//---------------------------------store/todo/mutations.js----------------------------------------------		export default {
+		  setTodos(state, todo) {                   // --5.2 >>state
+			state.todos.push(todo)
+		  },
+		  setTodosUpdate(state, todo) {            // --7.3 >>state
+			console.log(todo)
+			state.todos[todo.index] = todo.data
+		  },
+		  setTodosDelete(state, id) {               // --8.4 >>state
+			state.todos.splice(id, 1)
+		  },
+		}
+
+//---------------------------------store/todo/state.js-------------------------------------------------	
+		export default () => ({
+		  todos: [],
+		})
+
+//---------------------------------store/todo/getters.js------------------------------------------------
+		export default {
+		  getTodos(state) {               // --6.2--
+			return state.todos
+		  },
+		}
+//-----------------------------------------------//
+
+
+//----------------//---------------//---------------//-----------------//---------------//--------------//---------//
+//================================================================================================
+							//-------End Todo App--------//
+//================================================================================================
+//----------------//---------------//---------------//-----------------//---------------//--------------//---------//
+	
+	
+	
+	
+	
+	
+	
+	
+//--------------------------------------------------------------------------------------------------
+					//---------OPTIONAL | optional | OTHERS -------------//
+//--------------------------------------------------------------------------------------------------
+
+
+//================================================================================
+					|-------indexOf()-------|
+//================================================================================
+	The indexOf() method returns the position of the first occurrence of a specified value in a string.
+	This method returns -1 if the value to search for never occurs.
+
+//================================================================================
+					|-------Object.assign()-------|
+//================================================================================
+In the following example, there are multiple instances of some of the properties of the objects. In this case the method Object.assign() takes the lastly assigned value of a property. For instance, in all the 3 objects "obj1", "obj2", and "obj3 property 'c' is common and assigned values such as 1,3 and 0 respectively. The value of property 'c' in obj3 overrides the other previously assigned values 1 and 3. So if we look at the output, property 'c' is assigned with a value 0.
+
+<html>
+<body>
+<script>
+   var obj1 = { a: 10, b:20, c:1 };
+   var obj2 = { b: 30, d:10, c:3 };
+   var obj3 = { e: 60, d:70, c:0 };
+   var obj = Object.assign({}, obj1, obj2, obj3);
+   document.write(JSON.stringify(obj));
+</script>
+</body>
+</html>
+Output
+{"a":10,"b":30,"c":0,"d":70,"e":60}
+	
+	
+//================================================================================
+					|-------splice(id, 1)-------|
+//================================================================================
+	-- week.splice(2,3); [week array er index 2 theke start kore porer mot 3ta index CUT kore anbe]
+	--	var week=[
+		  "sat",  // 0  =  -7
+		  "sun",  // 1  =  -6
+		  "mon",  // 2  =  -5
+		  "tues", // 3  =  -4
+		  "wed",  // 4  =  -3
+		  "thu",  // 5  =  -2
+		  "fri",  // 6  =  -1
+		]
+
+		var berKorechi = week.splice(2,4);
+		console.log(week)
+		console.log(berKorechi);
+		//Ans: [ 'sat', 'sun', 'fri' ] [ 'mon', 'tues', 'wed', 'thu' ]
+	
+	
+	
+//---------//--------//-------End__OPTIONAL-------//--------//---------//---------//----------//
+	
+	
+	
+	
+	
+	
+	

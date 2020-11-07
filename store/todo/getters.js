@@ -1,5 +1,5 @@
 export default {
-  getTodos(state) {
+  getTodos(state) {               // --6.2--
     return state.todos
   },
 }

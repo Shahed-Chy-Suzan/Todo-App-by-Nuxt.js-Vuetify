@@ -5,7 +5,7 @@
     sort-by="id"
     class="elevation-1"
     :key="key"
-  >
+  >                                      <!--1-:items="todos"/3-->  <!--8-:key for reload-->
     <template v-slot:top>
       <v-toolbar flat>
         <v-toolbar-title>Nuxt-ToDo App</v-toolbar-title>
@@ -30,7 +30,7 @@
                     <v-text-field
                       v-model="editedItem.name"
                       label="Task Name"
-                    ></v-text-field>
+                    ></v-text-field>                          <!--2-v-model+label>>3-->
                   </v-col>
                   <v-col cols="12" sm="6" md="4">
                     <v-text-field
@@ -81,8 +81,8 @@
       </v-toolbar>
     </template>
     <template v-slot:item.actions="{ item }">
-      <v-icon small class="mr-2" @click="editItem(item)"> mdi-pencil </v-icon>
-      <v-icon small @click="deleteItem(item)"> mdi-delete </v-icon>
+      <v-icon small class="mr-2" @click="editItem(item)"> mdi-pencil </v-icon>      <!--7-->
+      <v-icon small @click="deleteItem(item)"> mdi-delete </v-icon>                <!--8-->
     </template>
     <template v-slot:no-data>
       <v-btn color="primary" @click="initialize"> Reset </v-btn>
@@ -91,13 +91,13 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { mapGetters } from 'vuex'               // --6--
 
 export default {
   data: () => ({
     dialog: false,
     dialogDelete: false,
-    headers: [
+    headers: [                                   // --4--
       {
         text: 'Task Name',
         align: 'start',
@@ -111,7 +111,7 @@ export default {
     ],
     desserts: [],
     editedIndex: -1,
-    editedItem: {
+    editedItem: {                               // --3--
       name: '',
       id: null,
       day: null,
@@ -123,14 +123,14 @@ export default {
       day: null,
       time: null,
     },
-    key: 0
+    key: 0                              // --8.1--
   }),
 
   computed: {
     formTitle() {
       return this.editedIndex === -1 ? 'New Item' : 'Edit Item'
     },
-    ...mapGetters({
+    ...mapGetters({                               // --6.1>>getters--
       todos: 'todo/getTodos',
     }),
   },
@@ -151,19 +151,19 @@ export default {
   methods: {
     initialize() {},
 
-    editItem(item) {
+    editItem(item) {                                        // --7.1--
       this.editedIndex = this.todos.indexOf(item)
       this.editedItem = Object.assign({}, item)
       this.dialog = true
     },
 
-    deleteItem(item) {
+    deleteItem(item) {                                      // --8.1--
       this.editedIndex = this.todos.indexOf(item)
       this.editedItem = Object.assign({}, item)
       this.dialogDelete = true
     },
 
-    deleteItemConfirm() {
+    deleteItemConfirm() {                                         // --8.2 >>actions
       // this.todos.splice(this.editedIndex, 1)
       this.$store.dispatch('todo/deleteTodo', this.editedIndex)
       this.closeDelete()
@@ -186,16 +186,16 @@ export default {
     },
 
     save() {
-      if (this.editedIndex > -1) {
+      if (this.editedIndex > -1) {                         // --7.2>>mutations(actions)
         const todo = {
           index: this.editedIndex,
           data: this.editedItem
         }
         this.$store.commit('todo/setTodosUpdate', todo)
-        this.key++
+        this.key++                                                  // --8.2--
       } else {
-        // this.desserts.push(this.editedItem)
-        this.$store.dispatch('todo/saveTodo', this.editedItem)
+        // this.desserts.push(this.editedItem)                        // --insert data--
+        this.$store.dispatch('todo/saveTodo', this.editedItem)        // --5>>actions--
       }
       this.close()
     },
