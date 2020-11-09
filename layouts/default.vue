@@ -72,8 +72,18 @@ export default {
       items: [
         {
           icon: 'mdi-apps',
-          title: 'Welcome',
+          title: 'Todo-App',
           to: '/',
+        },
+        {
+          icon: ' mdi-cart-variant',
+          title: 'SoftArray',
+          to: '/softarray',
+        },
+        {
+          icon: 'mdi-vuejs',
+          title: 'Vuetify-Design',
+          to: '/vuetify',
         },
         {
           icon: 'mdi-chart-bubble',
